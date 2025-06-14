@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
+using static Unity.Burst.Intrinsics.X86;
 
 [System.Serializable]
 public class Save
@@ -165,7 +166,6 @@ public class MakeTile : MonoBehaviour
 
             if (save != null)
             {
-                Middle = save.Middle;
                 seletedtile = save.seletedtile;
                 cells = save.cells;
             }
@@ -182,8 +182,11 @@ public class MakeTile : MonoBehaviour
             Data.WallKicks[Tetromino.C] = Data.WallKicksJLOSTZ;
         }
 
-        Toggle.isOn = Middle;
-        Middle = !Middle;
+        if (save.Middle)
+        {
+            Toggle.isOn = save.Middle;
+        }
+
 
         tileImage.sprite = tile[seletedtile].sprite;
         foreach (Vector2Int vector in cells)
@@ -198,11 +201,10 @@ public class MakeTile : MonoBehaviour
     }
     public void middle()
     {
-        Debug.Log(Middle);
         Middle = !Middle;
     }
-    public void Exit()
+    public void start()
     {
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(1);
     }
 }
