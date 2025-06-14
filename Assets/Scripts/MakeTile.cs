@@ -1,8 +1,17 @@
+using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 
+[System.Serializable]
+public class Save
+{
+    public Vector2Int[] cells;
+    public int seletedtile;
+    public bool Middle;
+}
 public class MakeTile : MonoBehaviour
 {
     public Tilemap tilemap;
@@ -13,9 +22,17 @@ public class MakeTile : MonoBehaviour
     public Image UI;
     public int TileCount;
     private Vector3Int Ghost;
+
     public bool Middle;
+
+    string path;
+
+    public Toggle Toggle;
+    public Image tileImage;
     void Start()
     {
+        path = Path.Combine(Application.dataPath, "CustomData.json");
+        LoadTile();
         UILoad();
     }
     public void Uptile()
@@ -127,12 +144,53 @@ public class MakeTile : MonoBehaviour
         {
             Data.WallKicks[Tetromino.C] = Data.WallKicksJLOSTZ;
         }
-        //JsonUtility.ToJson
+        Save save = new Save();
+        save.Middle = Middle;
+        save.seletedtile = seletedtile;
+        save.cells = cells;
+
+        string json = JsonUtility.ToJson(save, true);
+
+        File.WriteAllText(path, json);
     }
 
     public void LoadTile()
     {
+        Vector2Int[] cells = {new Vector2Int(0,0) };
+        Save save = new Save();
+        if (File.Exists(path))
+        {
+            string loadJson = File.ReadAllText(path);
+            save = JsonUtility.FromJson<Save>(loadJson);
 
+            if (save != null)
+            {
+                Middle = save.Middle;
+                seletedtile = save.seletedtile;
+                cells = save.cells;
+            }
+        }
+
+        Data.TileNumber = seletedtile;
+        Data.Cells[Tetromino.C] = cells;
+        if (Middle)
+        {
+            Data.WallKicks[Tetromino.C] = Data.WallKicksI;
+        }
+        else
+        {
+            Data.WallKicks[Tetromino.C] = Data.WallKicksJLOSTZ;
+        }
+
+        Toggle.isOn = Middle;
+        Middle = !Middle;
+
+        tileImage.sprite = tile[seletedtile].sprite;
+        foreach (Vector2Int vector in cells)
+        {
+            Vector3Int vector3 = new Vector3Int(vector.x-1, vector.y-1,0);
+            tilemap.SetTile(vector3, tile[seletedtile]);
+        }
     }
     public void Clear()
     {
@@ -140,6 +198,7 @@ public class MakeTile : MonoBehaviour
     }
     public void middle()
     {
+        Debug.Log(Middle);
         Middle = !Middle;
     }
     public void Exit()

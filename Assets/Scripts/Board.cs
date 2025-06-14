@@ -74,18 +74,25 @@ public class Board : MonoBehaviour
         int R = Random.Range(0, blocks.Count);
         NextTile = blocks[R];
         blocks.RemoveAt(R);
-        preView.Clear();
-        preView.Load(tetrominoes[NextTile]);
-
-        activePiece.Initialize(this, spawnPosition, data);
-
-        if (IsValidPosition(activePiece, spawnPosition)) 
+        if (data.cells == null)
         {
-            Set(activePiece);
-        } 
-        else 
+            SpawnPiece();
+        }
+        else
         {
-            GameOver();
+            preView.Clear();
+            preView.Load(tetrominoes[NextTile]);
+
+            activePiece.Initialize(this, spawnPosition, data);
+
+            if (IsValidPosition(activePiece, spawnPosition))
+            {
+                Set(activePiece);
+            }
+            else
+            {
+                GameOver();
+            }
         }
     }
 

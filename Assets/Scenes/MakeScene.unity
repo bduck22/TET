@@ -1568,6 +1568,8 @@ MonoBehaviour:
   UI: {fileID: 2076625208}
   TileCount: 5
   Middle: 0
+  Toggle: {fileID: 1876588772}
+  tileImage: {fileID: 2076625208}
 --- !u!1 &1376739915
 GameObject:
   m_ObjectHideFlags: 0
