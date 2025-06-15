@@ -91,6 +91,10 @@ public class Piece : MonoBehaviour
             SpeedTime = 0;
         }
 
+        if (Input.GetKeyDown(KeyCode.Escape)){
+            board.Pause();
+        }
+
         board.Set(this);
     }
     

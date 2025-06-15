@@ -7,10 +7,6 @@ public class PreView : MonoBehaviour
 {
     public Vector3Int[] cells;
     public Tilemap tilemap;
-    void Start()
-    {
-        tilemap = GetComponentInChildren<Tilemap>();
-    }
 
     public void Load(TetrominoData NextTile)
     {
@@ -31,13 +27,6 @@ public class PreView : MonoBehaviour
     }
     public void Clear()
     {
-        if (cells != null)
-        {
-            for (int i = 0; i < cells.Length; i++)
-            {
-                Vector3Int tilePosition = cells[i];
-                tilemap.SetTile(tilePosition, null);
-            }
-        }
+        tilemap.ClearAllTiles();
     }
 }

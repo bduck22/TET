@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 
 public class Board : MonoBehaviour
@@ -25,6 +26,14 @@ public class Board : MonoBehaviour
     public int Hold=-1;
 
     public Hold hold;
+
+    public Transform pause;
+
+    public Transform gameover;
+
+    public Transform set;
+
+    bool gameOver;
     public RectInt Bounds 
     {
         get
@@ -44,16 +53,8 @@ public class Board : MonoBehaviour
         {
             tetrominoes[i].Initialize();
         }
-        int R = Random.Range(0, blocks.Count);
-        NextTile = blocks[R];
-        blocks.Remove(R);
         tetrominoes[7].tile = tetrominoes[Data.TileNumber].tile;
         StageInit();
-    }
-
-    private void Start()
-    {
-        SpawnPiece();
     }
 
     public void SpawnPiece()
@@ -74,7 +75,8 @@ public class Board : MonoBehaviour
         int R = Random.Range(0, blocks.Count);
         NextTile = blocks[R];
         blocks.RemoveAt(R);
-        if (data.cells == null)
+
+        if (data.cells.Length == 0)
         {
             SpawnPiece();
         }
@@ -91,7 +93,11 @@ public class Board : MonoBehaviour
             }
             else
             {
-                GameOver();
+                Time.timeScale = 0;
+                gameOver = true;
+                set.gameObject.SetActive(true);
+                gameover.gameObject.SetActive(true);
+                pause.gameObject.SetActive(false);
             }
         }
     }
@@ -111,14 +117,49 @@ public class Board : MonoBehaviour
         }
         else
         {
-            GameOver();
+            Time.timeScale = 0;
+            gameOver = true;
+            set.gameObject.SetActive(true);
+            gameover.gameObject.SetActive(true);
+            pause.gameObject.SetActive(false);
         }
+    }
+    bool p = false;
+    public void Pause()
+    {
+        if (!gameOver)
+        {
+            p = !p;
+            if (p)
+            {
+                Time.timeScale = 0;
+                set.gameObject.SetActive(true);
+                gameover.gameObject.SetActive(false);
+                pause.gameObject.SetActive(true);
+            }
+            else
+            {
+                Time.timeScale = 1;
+                set.gameObject.SetActive(false);
+                gameover.gameObject.SetActive(false);
+                pause.gameObject.SetActive(false);
+            }
+        }
+    }
+    public void blockChange()
+    {
+        SceneManager.LoadScene(2);
+    }
+    public void Lobby()
+    {
+        SceneManager.LoadScene(0);
     }
 
     public void GameOver()
     {
-
-
+        if (gameOver) p = true;
+        gameOver = false;
+        Pause();
         tilemap.ClearAllTiles();
         StageInit();
         // Do anything else you want on game over here..
@@ -126,10 +167,20 @@ public class Board : MonoBehaviour
 
     public void StageInit()
     {
+        blocks = new List<int>{
+            0, 1, 2, 3, 4, 5, 6, 7
+        };
+        int R = Random.Range(0, blocks.Count);
+        NextTile = blocks[R];
+        blocks.Remove(R);
+        gameOver = false;
         Score = 0;
         HighScore = PlayerPrefs.GetInt("HighScore");
         Combo = 0;
         Hold = -1;
+        preView.Clear();
+        hold.Clear();
+        SpawnPiece();
     }
 
     public void Set(Piece piece)

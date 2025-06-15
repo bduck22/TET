@@ -205,6 +205,7 @@ public class MakeTile : MonoBehaviour
     }
     public void start()
     {
+        SaveTile();
         SceneManager.LoadScene(1);
     }
 }
