@@ -75,14 +75,14 @@ public class MakeTile : MonoBehaviour
                     gtilemap.SetTile(Position, Ghosttile);
                     Ghost = Position;
                 }
-                if (Input.GetMouseButtonDown(0))
+                if (Input.GetMouseButton(0))
                 {
                     tilemap.SetTile(Position, tile[seletedtile]);
                     gtilemap.SetTile(Ghost, null);
                     Ghost = new Vector3Int(10, 10, 10);
                 }
             }
-            if (Input.GetMouseButtonDown(1))
+            if (Input.GetMouseButton(1))
             {
                 tilemap.SetTile(Position, null);
             }

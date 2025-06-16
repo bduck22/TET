@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
+using UnityEngine.Pool;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
-
+using DamageNumbersPro;
 public class Board : MonoBehaviour
 {
     public Tilemap tilemap { get; private set; }
@@ -33,7 +35,13 @@ public class Board : MonoBehaviour
 
     public Transform set;
 
-    bool gameOver;
+    public bool gameOver;
+
+    public Transform effectOb;
+
+    public DamageNumber ComboPre;
+
+    public DamageNumber ScorePre;
     public RectInt Bounds 
     {
         get
@@ -66,22 +74,17 @@ public class Board : MonoBehaviour
         }
 
         TetrominoData data = tetrominoes[NextTile];
-        if (blocks.Count == 0)
+        if(blocks.Count == 0)
         {
             blocks = new List<int>{
-                0, 1, 2, 3, 4, 5, 6, 7
-            };
+            0, 1, 2, 3, 4, 5, 6, 7
+        };
+            if (Data.Cells[Tetromino.C].Length == 0) blocks.RemoveAt(7);
         }
         int R = Random.Range(0, blocks.Count);
         NextTile = blocks[R];
         blocks.RemoveAt(R);
 
-        if (data.cells.Length == 0)
-        {
-            SpawnPiece();
-        }
-        else
-        {
             preView.Clear();
             preView.Load(tetrominoes[NextTile]);
 
@@ -93,13 +96,13 @@ public class Board : MonoBehaviour
             }
             else
             {
-                Time.timeScale = 0;
+            GetComponent<AudioSource>().Stop();
+            Time.timeScale = 0;
                 gameOver = true;
                 set.gameObject.SetActive(true);
                 gameover.gameObject.SetActive(true);
                 pause.gameObject.SetActive(false);
             }
-        }
     }
 
     public void SpawnPiece(int TileNum)
@@ -117,6 +120,7 @@ public class Board : MonoBehaviour
         }
         else
         {
+            GetComponent<AudioSource>().Stop();
             Time.timeScale = 0;
             gameOver = true;
             set.gameObject.SetActive(true);
@@ -132,6 +136,7 @@ public class Board : MonoBehaviour
             p = !p;
             if (p)
             {
+                GetComponent<AudioSource>().Stop();
                 Time.timeScale = 0;
                 set.gameObject.SetActive(true);
                 gameover.gameObject.SetActive(false);
@@ -139,6 +144,7 @@ public class Board : MonoBehaviour
             }
             else
             {
+                GetComponent<AudioSource>().Play();
                 Time.timeScale = 1;
                 set.gameObject.SetActive(false);
                 gameover.gameObject.SetActive(false);
@@ -148,10 +154,12 @@ public class Board : MonoBehaviour
     }
     public void blockChange()
     {
+        Time.timeScale = 1;
         SceneManager.LoadScene(2);
     }
     public void Lobby()
     {
+        Time.timeScale = 1;
         SceneManager.LoadScene(0);
     }
 
@@ -167,12 +175,14 @@ public class Board : MonoBehaviour
 
     public void StageInit()
     {
+        GetComponent<Piece>().stepDelay = 1;
         blocks = new List<int>{
             0, 1, 2, 3, 4, 5, 6, 7
         };
+        if (Data.Cells[Tetromino.C].Length == 0) blocks.RemoveAt(7);
         int R = Random.Range(0, blocks.Count);
         NextTile = blocks[R];
-        blocks.Remove(R);
+        blocks.RemoveAt(R);
         gameOver = false;
         Score = 0;
         HighScore = PlayerPrefs.GetInt("HighScore");
@@ -181,6 +191,7 @@ public class Board : MonoBehaviour
         preView.Clear();
         hold.Clear();
         SpawnPiece();
+        GetComponent<AudioSource>().Play();
     }
 
     public void Set(Piece piece)
@@ -229,11 +240,12 @@ public class Board : MonoBehaviour
     public void ClearLines()
     {
         RectInt bounds = Bounds;
-        int row = bounds.yMin;
+        int row = bounds.yMax-1;
+        int lrow=-10;
 
         // Clear from bottom to top
         int plus=0;
-        while (row < bounds.yMax)
+        while (row >= bounds.yMin)
         {
             // Only advance to the next row if the current is not cleared
             // because the tiles above will fall down when a row is cleared
@@ -241,16 +253,20 @@ public class Board : MonoBehaviour
             {
                 plus++;
                 LineClear(row);
+                lrow = row;
             } 
             else 
             {
-                row++;
+                row--;
             }
         }
+
         if(plus > 0)
         {
-            Score += (plus*2-1 + (plus / 4)+Combo) * 100;
+            Score += (plus*2-1 + (plus / 4)+((plus/5)*2)) * 100 * (1 + (Combo-1)/2);
+            ScorePre.Spawn(new Vector3(8, lrow+0.5f, 0), (plus * 2 - 1 + (plus / 4) + ((plus / 5) * 2)) * 100 * (1 + (Combo - 1) / 2));
             Combo++;
+            ComboPre.Spawn(new Vector3(-8, lrow + 0.5f, 0), Combo);
         }
         else
         {
@@ -260,7 +276,7 @@ public class Board : MonoBehaviour
 
         if (IsLineEmpty(-10))
         {
-            Score += 1000;
+            Score += 10000;
         }
         if(Score > HighScore)
         {
@@ -297,7 +313,7 @@ public class Board : MonoBehaviour
                 return false;
             }
         }
-
+        Instantiate(effectOb, new Vector3(0, row + 0.5f, 0), Quaternion.identity);
         return true;
     }
 
@@ -311,6 +327,7 @@ public class Board : MonoBehaviour
             Vector3Int position = new Vector3Int(col, row, 0);
             tilemap.SetTile(position, null);
         }
+
 
         // Shift every row above down one
         while (row < bounds.yMax)

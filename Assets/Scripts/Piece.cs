@@ -40,6 +40,10 @@ public class Piece : MonoBehaviour
     float SpeedTime=0;
     private void Update()
     {
+        if (board.gameOver)
+        {
+            return;
+        }
         board.Clear(this);
 
         SpeedTime += Time.deltaTime;
@@ -163,6 +167,7 @@ public class Piece : MonoBehaviour
 
     private void Lock()
     {
+        transform.GetChild(0).GetComponent<AudioSource>().Play();
         hold = true;
         board.Set(this);
         board.ClearLines();
